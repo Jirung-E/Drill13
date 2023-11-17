@@ -49,6 +49,11 @@ class Zombie:
 
         self.build_behavior_tree()
 
+        self.patrol_locations = [
+            (43, 274), (1118, 274), (1050, 494), (575, 804), (235, 991), (575, 804), (1050, 494), 
+        ]
+        self.loc_no = 0
+
 
     def get_bb(self):
         return self.x - 50, self.y - 50, self.x + 50, self.y + 50
@@ -121,7 +126,9 @@ class Zombie:
             return BehaviorTree.RUNNING
 
     def get_patrol_location(self):
-        pass
+        self.tx, self.ty = self.patrol_locations[self.loc_no]
+        self.loc_no = (self.loc_no + 1) % len(self.patrol_locations)
+        return BehaviorTree.SUCCESS
 
     def build_behavior_tree(self):
         a1 = Action("Set target location", self.set_target_location, 500, 50)
@@ -137,6 +144,10 @@ class Zombie:
         a4 = Action("Move to boy", self.move_to_boy)
         SEQ_chase_boy = Sequence("Chase boy", c1, a4)
 
-        root = SEQ_chase_boy
+        SEL_chase_or_wander = Selector("Chase or wander", SEQ_chase_boy, SEQ_wander)
 
-        self.bt = BehaviorTree(root)
+        a5 = Action("Get patrol location", self.get_patrol_location)
+
+        SEQ_patrol = Sequence("Patrol", a5, a2)
+
+        self.bt = BehaviorTree(SEQ_patrol)
