@@ -125,7 +125,7 @@ class Zombie:
         else:
             return BehaviorTree.RUNNING
         
-    def run_away_from_boy(self, r=7):
+    def run_away_from_boy(self, r=8):
         self.state = 'Walk'
         dx = play_mode.boy.x - self.x
         dy = play_mode.boy.y - self.y
