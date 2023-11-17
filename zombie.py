@@ -161,6 +161,6 @@ class Zombie:
         select_chase_or_runaway = Selector("Select chase or runaway", seq_chase_boy, runaway)
         chase_or_runaway = Sequence("Chase or runaway", is_boy_nearby, select_chase_or_runaway)
 
-        SEL_root = Selector("Zombie behavior tree", chase_or_runaway, wander)
+        root = Selector("Zombie behavior tree", chase_or_runaway, wander)
 
-        self.bt = BehaviorTree(SEL_root)
+        self.bt = BehaviorTree(root)
