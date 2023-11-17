@@ -107,10 +107,18 @@ class Zombie:
         return BehaviorTree.SUCCESS
 
     def is_boy_nearby(self, distance):
-        pass
+        if self.distance_less_than(play_mode.boy.x, play_mode.boy.y, self.x, self.y, distance):
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.FAIL
 
     def move_to_boy(self, r=0.5):
-        pass
+        self.state = 'Walk'
+        self.move_slightly_to(play_mode.boy.x, play_mode.boy.y)
+        if self.distance_less_than(play_mode.boy.x, play_mode.boy.y, self.x, self.y, r):
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.RUNNING
 
     def get_patrol_location(self):
         pass
@@ -123,6 +131,12 @@ class Zombie:
 
         a3 = Action("Set random location", self.set_random_location)
 
-        root = SEQ_wander = Sequence("Wander", a3, a2)
+        SEQ_wander = Sequence("Wander", a3, a2)
+
+        c1 = Condition("Is boy nearby", self.is_boy_nearby, 7)
+        a4 = Action("Move to boy", self.move_to_boy)
+        SEQ_chase_boy = Sequence("Chase boy", c1, a4)
+
+        root = SEQ_chase_boy
 
         self.bt = BehaviorTree(root)
