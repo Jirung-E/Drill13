@@ -188,6 +188,6 @@ class Condition(Node):
         self.value = self.func(*self.args)
         if self.value == BehaviorTree.RUNNING:
             print("ERROR: condition node cannot return RUNNING")
-            raise ValueError;
+            raise ValueError
 
         return self.value
