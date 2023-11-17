@@ -124,30 +124,43 @@ class Zombie:
             return BehaviorTree.SUCCESS
         else:
             return BehaviorTree.RUNNING
+        
+    def run_away_from_boy(self, r=7):
+        self.state = 'Walk'
+        dx = play_mode.boy.x - self.x
+        dy = play_mode.boy.y - self.y
+        tx = self.x - dx
+        ty = self.y - dy
+        self.move_slightly_to(tx, ty)
+        if self.distance_less_than(play_mode.boy.x, play_mode.boy.y, self.x, self.y, r):
+            return BehaviorTree.RUNNING
+        else:
+            return BehaviorTree.SUCCESS
 
     def get_patrol_location(self):
         self.tx, self.ty = self.patrol_locations[self.loc_no]
         self.loc_no = (self.loc_no + 1) % len(self.patrol_locations)
         return BehaviorTree.SUCCESS
+    
+    def compare_ball(self):
+        if self.ball_count >= play_mode.boy.ball_count:
+            return BehaviorTree.SUCCESS
+        else:
+            return BehaviorTree.FAIL
 
     def build_behavior_tree(self):
-        a1 = Action("Set target location", self.set_target_location, 500, 50)
-        a2 = Action("Move to", self.move_to)
+        set_random_location = Action("Set random location", self.set_random_location)
+        move_to_random_location = Action("Move to", self.move_to)
+        wander = Sequence("Wander", set_random_location, move_to_random_location)
 
-        SEQ_move_to_target_location = Sequence("Move to target location", a1, a2)
+        is_boy_nearby = Condition("Is boy nearby", self.is_boy_nearby, 7)
+        chase_boy = Action("Chase boy", self.move_to_boy)
+        runaway = Action("Run away", self.run_away_from_boy)
+        compare_ball = Condition("Compare ball", self.compare_ball)
+        seq_chase_boy = Sequence("Seq chase_boy", compare_ball, chase_boy)
+        select_chase_or_runaway = Selector("Select chase or runaway", seq_chase_boy, runaway)
+        chase_or_runaway = Sequence("Chase or runaway", is_boy_nearby, select_chase_or_runaway)
 
-        a3 = Action("Set random location", self.set_random_location)
+        SEL_root = Selector("Zombie behavior tree", chase_or_runaway, wander)
 
-        SEQ_wander = Sequence("Wander", a3, a2)
-
-        c1 = Condition("Is boy nearby", self.is_boy_nearby, 7)
-        a4 = Action("Move to boy", self.move_to_boy)
-        SEQ_chase_boy = Sequence("Chase boy", c1, a4)
-
-        SEL_chase_or_wander = Selector("Chase or wander", SEQ_chase_boy, SEQ_wander)
-
-        a5 = Action("Get patrol location", self.get_patrol_location)
-
-        SEQ_patrol = Sequence("Patrol", a5, a2)
-
-        self.bt = BehaviorTree(SEQ_patrol)
+        self.bt = BehaviorTree(SEL_root)
